@@ -68,7 +68,7 @@ class HelloController {
      * Demonstrates automatic JSON serialization
      */
     @GetMapping("/status")
-    fun getStatus(): Map<String, Any> {
+    fun getStatus(): Map<String, Any?> {
         return mapOf(
             "status" to "running",
             "version" to "1.0.0",
