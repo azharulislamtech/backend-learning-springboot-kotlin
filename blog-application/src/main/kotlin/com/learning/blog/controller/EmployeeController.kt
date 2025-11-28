@@ -1,40 +1,103 @@
 package com.learning.blog.controller
 
 import com.learning.blog.model.APIResponse
+import com.learning.blog.model.CreateEmployeeRequest
 import com.learning.blog.model.Employee
 import com.learning.blog.model.EmployeeResponse
+import com.learning.blog.model.UpdateEmployeeRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.net.URI
 
 @RestController
 @RequestMapping("/api/employees")
 class EmployeeController {
 
-    private val employees=mutableListOf<Employee>()
-    private var currentId=1L
+    private val employees = mutableListOf<Employee>()
+    private var currentId = 1L
 
     @GetMapping()
-    fun getAllEmployees(): ResponseEntity<APIResponse<List<EmployeeResponse>>>{
-        val employeeResponse=employees.map{ EmployeeResponse.fromEmployee(it) }
-        return if(employeeResponse.isNotEmpty()){
-            ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data",data=employeeResponse))
-        }else{
-             ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "No data found",data = null))
+    fun getAllEmployees(): ResponseEntity<APIResponse<List<EmployeeResponse>>> {
+        val employeeResponse = employees.map { EmployeeResponse.fromEmployee(it) }
+        return if (employeeResponse.isNotEmpty()) {
+            ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
+        } else {
+            ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(APIResponse(success = false, message = "No data found", data = null))
         }
 
     }
+
     @GetMapping("/{id}")
-    fun getUserById(@PathVariable id:Long):ResponseEntity<APIResponse<EmployeeResponse>>{
-        val employee=employees.find{it.id==id}
-        return if(employee!=null){
-            ResponseEntity.ok(APIResponse(success = true, message = "Employee found successfully",data= EmployeeResponse.fromEmployee(employee)))
-        }else{
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "Employee with id $id not found", data = null))
+    fun getEmployeeById(@PathVariable id: Long): ResponseEntity<APIResponse<EmployeeResponse>> {
+        val employee = employees.find { it.id == id }
+        return if (employee != null) {
+            ResponseEntity.ok(
+                APIResponse(
+                    success = true,
+                    message = "Employee found successfully",
+                    data = EmployeeResponse.fromEmployee(employee)
+                )
+            )
+        } else {
+            ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(APIResponse(success = false, message = "Employee with id $id not found", data = null))
         }
     }
+
+    @PostMapping
+    fun createEmployee(@RequestBody request: CreateEmployeeRequest)
+            : ResponseEntity<APIResponse<EmployeeResponse>> {
+        val employee = Employee(
+            id = currentId++,
+            name = request.name,
+            email = request.email,
+            password = request.password,
+            department = request.department
+        )
+        employees.add(employee)
+        return ResponseEntity
+            .created(URI.create("/api/employee/${employee.id}"))
+            .body(
+                APIResponse(
+                    success = true,
+                    message = "Employee generated successfully",
+                    data = EmployeeResponse.fromEmployee(employee)
+                )
+            )
+    }
+
+    @PutMapping("/{id}")
+    fun updateEmployee(@PathVariable id: Long, @RequestBody request: UpdateEmployeeRequest)
+            : ResponseEntity<APIResponse<EmployeeResponse>> {
+        val index = employees.indexOfFirst { it.id == id }
+        if (index != -1) {
+            val updatedEmployee = employees[index].copy(
+                name = request.name,
+                email = request.email,
+                department = request.department
+            )
+            employees[index] = updatedEmployee
+
+            return ResponseEntity.ok(
+                APIResponse(
+                    success = true,
+                    message = "Employee updated successfully",
+                    data = EmployeeResponse.fromEmployee(updatedEmployee)
+                )
+            )
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(APIResponse(success = false, message = "User with id $id not found", data = null))
+        }
+    }
+
 
 }
