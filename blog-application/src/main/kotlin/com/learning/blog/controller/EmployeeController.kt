@@ -8,6 +8,7 @@ import com.learning.blog.model.UpdateEmployeeRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -53,51 +54,64 @@ class EmployeeController {
     }
 
     @PostMapping
-    fun createEmployee(@RequestBody request: CreateEmployeeRequest)
-            : ResponseEntity<APIResponse<EmployeeResponse>> {
-        val employee = Employee(
+    fun createEmployee(@RequestBody request: CreateEmployeeRequest): ResponseEntity<APIResponse<EmployeeResponse>> {
+        val newEmployee = Employee(
             id = currentId++,
             name = request.name,
             email = request.email,
             password = request.password,
             department = request.department
         )
-        employees.add(employee)
-        return ResponseEntity
-            .created(URI.create("/api/employee/${employee.id}"))
-            .body(
-                APIResponse(
-                    success = true,
-                    message = "Employee generated successfully",
-                    data = EmployeeResponse.fromEmployee(employee)
-                )
+        return ResponseEntity.created(URI.create("api/employees/{id}")).body(
+            APIResponse(
+                success = true,
+                message = "Employee populated",
+                data = EmployeeResponse.fromEmployee(newEmployee)
             )
+        )
     }
 
     @PutMapping("/{id}")
-    fun updateEmployee(@PathVariable id: Long, @RequestBody request: UpdateEmployeeRequest)
-            : ResponseEntity<APIResponse<EmployeeResponse>> {
+    fun updateEmployee(
+        @PathVariable id: Long,
+        @RequestBody request: UpdateEmployeeRequest
+    ): ResponseEntity<APIResponse<EmployeeResponse>> {
         val index = employees.indexOfFirst { it.id == id }
-        if (index != -1) {
-            val updatedEmployee = employees[index].copy(
+        if (index == -1) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(APIResponse(success = true, message = "Employee id with $id not found", data = null))
+        }
+            val currentEmployee = employees[index]
+            val updatedEmployee = currentEmployee.copy(
                 name = request.name,
                 email = request.email,
                 department = request.department
             )
             employees[index] = updatedEmployee
-
             return ResponseEntity.ok(
                 APIResponse(
                     success = true,
-                    message = "Employee updated successfully",
+                    message = "Employee profile updated",
                     data = EmployeeResponse.fromEmployee(updatedEmployee)
                 )
             )
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse(success = false, message = "User with id $id not found", data = null))
-        }
     }
 
+    @PatchMapping("/{id}")
+    fun patchEmployee(@PathVariable id:Long,@RequestBody update: Map<String,Any>): ResponseEntity<APIResponse<EmployeeResponse>>{
+        val index=employees.indexOfFirst { it.id==id }
+        if(index==-1){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "Employee id with $id not found"))
+        }
+        val currentEmployee=employees[index]
+        val updatedEmployee=currentEmployee.copy(
+            name=update["name"]
+            as String??:currentEmployee.name,
+            email=update["email"] as String??:currentEmployee.email,
+            department = update["department"] as String??:currentEmployee.department
+        )
+      employees[index]=updatedEmployee
+        return ResponseEntity.ok(APIResponse(success = true, message = "Employee updated successfully", data = EmployeeResponse.fromEmployee(updatedEmployee)))
+    }
 
 }
