@@ -71,6 +71,7 @@ class EmployeeController {
         )
     }
 
+
     @PutMapping("/{id}")
     fun updateEmployee(
         @PathVariable id: Long,
@@ -79,39 +80,54 @@ class EmployeeController {
         val index = employees.indexOfFirst { it.id == id }
         if (index == -1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse(success = true, message = "Employee id with $id not found", data = null))
+                .body(APIResponse(success = false, message = "Employee id with $id not found", data = null))
+
         }
-            val currentEmployee = employees[index]
-            val updatedEmployee = currentEmployee.copy(
-                name = request.name,
-                email = request.email,
-                department = request.department
+        val currentEmployee = employees[index]
+        val updatedEmployee = currentEmployee.copy(
+            name = request.name,
+            email = request.email,
+            department = request.department
+        )
+        employees[index] = updatedEmployee
+        return ResponseEntity.ok(
+            APIResponse(
+                success = true,
+                message = "Employee updated successfully",
+                data = EmployeeResponse.fromEmployee(updatedEmployee)
             )
-            employees[index] = updatedEmployee
-            return ResponseEntity.ok(
-                APIResponse(
-                    success = true,
-                    message = "Employee profile updated",
-                    data = EmployeeResponse.fromEmployee(updatedEmployee)
-                )
-            )
+        )
+
     }
 
     @PatchMapping("/{id}")
-    fun patchEmployee(@PathVariable id:Long,@RequestBody update: Map<String,Any>): ResponseEntity<APIResponse<EmployeeResponse>>{
-        val index=employees.indexOfFirst { it.id==id }
-        if(index==-1){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "Employee id with $id not found"))
+    fun patchEmployee(
+        @PathVariable id: Long,
+        @RequestBody update: Map<String, Any>
+    ): ResponseEntity<APIResponse<EmployeeResponse>> {
+        val index = employees.indexOfFirst { it.id == id }
+        if (index == -1) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(APIResponse(success = false, message = "Employee id with $id not found", data = null))
         }
-        val currentEmployee=employees[index]
-        val updatedEmployee=currentEmployee.copy(
-            name=update["name"]
-            as String??:currentEmployee.name,
-            email=update["email"] as String??:currentEmployee.email,
-            department = update["department"] as String??:currentEmployee.department
+        val currentEmployee = employees[index]
+
+        update.forEach { (key, value) ->
+            when (key) {
+                "name" -> currentEmployee.copy(name = value as String)
+                "email" -> currentEmployee.copy(email = value as String)
+                "department" -> currentEmployee.copy(department = value as String)
+            }
+        }
+        return ResponseEntity.ok(
+            APIResponse(
+                success = true,
+                message = "Employee updated successfully",
+                data = EmployeeResponse.fromEmployee(currentEmployee)
+            )
         )
-      employees[index]=updatedEmployee
-        return ResponseEntity.ok(APIResponse(success = true, message = "Employee updated successfully", data = EmployeeResponse.fromEmployee(updatedEmployee)))
     }
+
+
 
 }
