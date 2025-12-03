@@ -100,32 +100,25 @@ class EmployeeController {
 
     }
 
+
     @PatchMapping("/{id}")
-    fun patchEmployee(
-        @PathVariable id: Long,
-        @RequestBody update: Map<String, Any>
-    ): ResponseEntity<APIResponse<EmployeeResponse>> {
-        val index = employees.indexOfFirst { it.id == id }
-        if (index == -1) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse(success = false, message = "Employee id with $id not found", data = null))
+    fun patchEmployee(@PathVariable id:Long,@RequestBody update:Map<String,Any>): ResponseEntity<APIResponse<EmployeeResponse>>{
+        val index=employees.indexOfFirst { it.id==id }
+        if(index==-1){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "Employee did not find with $id", data = null))
         }
-        val currentEmployee = employees[index]
+        var currentEmployee=employees[index]
 
         update.forEach { (key, value) ->
-            when (key) {
-                "name" -> currentEmployee.copy(name = value as String)
-                "email" -> currentEmployee.copy(email = value as String)
-                "department" -> currentEmployee.copy(department = value as String)
+            when(key){
+                "name"->currentEmployee=currentEmployee.copy(name=value as String)
+                "email"->currentEmployee=currentEmployee.copy(email=value as String)
+                "department"->currentEmployee=currentEmployee.copy(department=value as String)
             }
-        }
-        return ResponseEntity.ok(
-            APIResponse(
-                success = true,
-                message = "Employee updated successfully",
-                data = EmployeeResponse.fromEmployee(currentEmployee)
-            )
-        )
+         }
+        employees[index]=currentEmployee
+
+        return ResponseEntity.ok(APIResponse(success = true, message = "Employee updated successfully",data= EmployeeResponse.fromEmployee(currentEmployee)))
     }
 
 
