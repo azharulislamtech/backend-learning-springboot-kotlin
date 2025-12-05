@@ -71,7 +71,6 @@ class EmployeeController {
         )
     }
 
-
     @PutMapping("/{id}")
     fun updateEmployee(
         @PathVariable id: Long,
@@ -81,46 +80,46 @@ class EmployeeController {
         if (index == -1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(APIResponse(success = false, message = "Employee id with $id not found", data = null))
-
         }
-        val currentEmployee = employees[index]
-        val updatedEmployee = currentEmployee.copy(
-            name = request.name,
-            email = request.email,
-            department = request.department
-        )
+        val employee = employees[index]
+        val updatedEmployee = employee.copy(name = request.name, email = request.email, department = request.department)
         employees[index] = updatedEmployee
-        return ResponseEntity.ok(
+        return ResponseEntity.ok().body(
             APIResponse(
                 success = true,
                 message = "Employee updated successfully",
                 data = EmployeeResponse.fromEmployee(updatedEmployee)
             )
         )
-
     }
-
 
     @PatchMapping("/{id}")
-    fun patchEmployee(@PathVariable id:Long,@RequestBody update:Map<String,Any>): ResponseEntity<APIResponse<EmployeeResponse>>{
-        val index=employees.indexOfFirst { it.id==id }
-        if(index==-1){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "Employee did not find with $id", data = null))
-        }
-        var currentEmployee=employees[index]
+    fun patchEmployee(
+        @PathVariable id: Long,
+        @RequestBody update: Map<String, Any>
+    ): ResponseEntity<APIResponse<EmployeeResponse>> {
+        val index = employees.indexOfFirst { it.id == id }
 
+        if (index == -1)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(APIResponse(success = false, message = "Employee id with $id not found"))
+
+        var employee = employees[index]
         update.forEach { (key, value) ->
-            when(key){
-                "name"->currentEmployee=currentEmployee.copy(name=value as String)
-                "email"->currentEmployee=currentEmployee.copy(email=value as String)
-                "department"->currentEmployee=currentEmployee.copy(department=value as String)
+            when (key) {
+                "name" -> employee = employee.copy(name = value.toString())
+                "email" -> employee = employee.copy(email = value.toString())
+                "department" -> employee = employee.copy(department = value.toString())
             }
-         }
-        employees[index]=currentEmployee
+        }
+        employees[index] = employee
+        return ResponseEntity.ok(
+            APIResponse(
+                success = true,
+                message = "Employee updated successfully",
+                data = EmployeeResponse.fromEmployee(employee)
+            )
+        )
 
-        return ResponseEntity.ok(APIResponse(success = true, message = "Employee updated successfully",data= EmployeeResponse.fromEmployee(currentEmployee)))
     }
-
-
-
 }
