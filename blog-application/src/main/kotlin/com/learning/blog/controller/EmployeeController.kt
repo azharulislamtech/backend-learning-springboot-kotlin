@@ -7,6 +7,7 @@ import com.learning.blog.model.EmployeeResponse
 import com.learning.blog.model.UpdateEmployeeRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -121,5 +122,20 @@ class EmployeeController {
             )
         )
 
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteEmployee(@PathVariable id: Long): ResponseEntity<APIResponse<String>> {
+        val removed = employees.removeIf { it.id == id }
+        if (removed)
+            return ResponseEntity.ok(
+                APIResponse(
+                    success = true,
+                    message = "Employee deleted successfully",
+                    data = "Employee with id $id has been removed"
+                )
+            )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(APIResponse(success = false, message = "Employee with id $id not found", data = null))
     }
 }
