@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 
@@ -124,18 +125,40 @@ class EmployeeController {
 
     }
 
+
     @DeleteMapping("/{id}")
     fun deleteEmployee(@PathVariable id: Long): ResponseEntity<APIResponse<String>> {
-        val removed = employees.removeIf { it.id == id }
-        if (removed)
+        val deleted = employees.removeIf { it.id == id }
+        if (deleted) {
             return ResponseEntity.ok(
                 APIResponse(
                     success = true,
-                    message = "Employee deleted successfully",
-                    data = "Employee with id $id has been removed"
+                    message = "Employee  removed successfully",
+                    data = "Employee id $id deleted successfully"
                 )
             )
+        }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(APIResponse(success = false, message = "Employee with id $id not found", data = null))
+            .body(APIResponse(success = false, message = "Employee id $id not found", data = null))
     }
+
+    @GetMapping("/search")
+    fun searchEmployee(@RequestParam name: String): ResponseEntity<APIResponse<List<EmployeeResponse>>> {
+        val searchResult =
+            employees.filter { it.name.contains(name, ignoreCase = true) }.map { EmployeeResponse.fromEmployee(it) }
+        return if (searchResult.isNotEmpty()) {
+            ResponseEntity.ok(
+                APIResponse(
+                    success = true,
+                    message = "Search Completed . Found ${searchResult.size} employee",
+                    data = searchResult
+                )
+            )
+        } else {
+            ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(APIResponse(success = false, message = "Search employee not found", data = null))
+        }
+    }
+
+
 }
