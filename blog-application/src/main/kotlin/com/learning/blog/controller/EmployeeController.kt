@@ -143,22 +143,37 @@ class EmployeeController {
     }
 
     @GetMapping("/search")
-    fun searchEmployee(@RequestParam name: String): ResponseEntity<APIResponse<List<EmployeeResponse>>> {
-        val searchResult =
-            employees.filter { it.name.contains(name, ignoreCase = true) }.map { EmployeeResponse.fromEmployee(it) }
-        return if (searchResult.isNotEmpty()) {
-            ResponseEntity.ok(
-                APIResponse(
-                    success = true,
-                    message = "Search Completed . Found ${searchResult.size} employee",
-                    data = searchResult
-                )
-            )
-        } else {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse(success = false, message = "Search employee not found", data = null))
+    fun searchEmployeeByName(@RequestParam name: String): ResponseEntity<APIResponse<List<EmployeeResponse>>>{
+        val matchEmployees= employees.filter { it.name.contains(name, ignoreCase = true) }
+        val employeeResponse=matchEmployees.map{ EmployeeResponse.fromEmployee(it) }
+
+        return if(employeeResponse.isNotEmpty()){
+            ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
+        }else{
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "No data found", data = null))
         }
+
     }
 
+    @GetMapping("/search")
+    fun searchEmployees(@RequestParam query: String?=null): ResponseEntity<APIResponse<List<EmployeeResponse>>> {
+
+        val matchEmployees = if (query == null) {
+            employees
+        } else {
+            employees.filter {
+                it.name.contains(query, ignoreCase = true) || it.department.contains(
+                    query,
+                    ignoreCase = true
+                ) || it.email.contains(query, ignoreCase = true)
+            }
+        }
+        val employeeResponse = matchEmployees.map { EmployeeResponse.fromEmployee(it) }
+
+        return ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
+
+
+    }
+    
 
 }
