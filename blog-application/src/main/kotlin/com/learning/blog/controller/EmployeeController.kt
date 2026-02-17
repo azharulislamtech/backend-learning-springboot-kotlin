@@ -151,8 +151,20 @@ class EmployeeController {
             ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
         }else{
             ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "No data found", data = null))
+
         }
 
+    }
+
+    fun employeeSearch(@RequestParam query: String?=null): ResponseEntity<APIResponse<List<EmployeeResponse>>>
+    {
+        val matchEmployees=if(query.isNullOrEmpty()){
+            employees
+        }else{
+            employees.filter { it.name.contains(query, ignoreCase = true)||it.department.contains(query, ignoreCase = true)||it.email.contains(query, ignoreCase = true) }
+        }
+        val employeeResponse=matchEmployees.map{ EmployeeResponse.fromEmployee(it) }
+        return ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
     }
 
     @GetMapping("/search")
@@ -174,6 +186,5 @@ class EmployeeController {
 
 
     }
-    
 
 }

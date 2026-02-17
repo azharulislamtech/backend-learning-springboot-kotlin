@@ -3,6 +3,7 @@ package com.learning.blog.controller
 import com.learning.blog.model.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.ResponseEntity.*
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 
@@ -32,7 +33,7 @@ class UserController {
     fun getAllUsers(): ResponseEntity<ApiResponse<List<UserResponse>>> {
         val userResponses = users.map { UserResponse.fromUser(it) }
 
-        return ResponseEntity.ok(
+        return ok(
             ApiResponse(
                 success = true,
                 message = "Users retrieved successfully",
@@ -53,7 +54,7 @@ class UserController {
         val user = users.find { it.id == id }
 
         return if (user != null) {
-            ResponseEntity.ok(
+            ok(
                 ApiResponse(
                     success = true,
                     message = "User found",
@@ -61,8 +62,7 @@ class UserController {
                 )
             )
         } else {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+            status(HttpStatus.NOT_FOUND)
                 .body(
                     ApiResponse(
                         success = false,
@@ -96,8 +96,7 @@ class UserController {
         users.add(newUser)
 
         // Return 201 Created with Location header
-        return ResponseEntity
-            .created(URI.create("/api/users/${newUser.id}"))
+        return created(URI.create("/api/users/${newUser.id}"))
             .body(
                 ApiResponse(
                     success = true,
@@ -131,7 +130,7 @@ class UserController {
             )
             users[index] = updatedUser
 
-            ResponseEntity.ok(
+            ok(
                 ApiResponse(
                     success = true,
                     message = "User updated successfully",
@@ -139,8 +138,7 @@ class UserController {
                 )
             )
         } else {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+            status(HttpStatus.NOT_FOUND)
                 .body(
                     ApiResponse(
                         success = false,
@@ -179,7 +177,7 @@ class UserController {
 
             users[index] = user
 
-            ResponseEntity.ok(
+            ok(
                 ApiResponse(
                     success = true,
                     message = "User partially updated",
@@ -187,8 +185,7 @@ class UserController {
                 )
             )
         } else {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+            status(HttpStatus.NOT_FOUND)
                 .body(
                     ApiResponse(
                         success = false,
@@ -211,7 +208,7 @@ class UserController {
         val removed = users.removeIf { it.id == id }
 
         return if (removed) {
-            ResponseEntity.ok(
+            ok(
                 ApiResponse(
                     success = true,
                     message = "User deleted successfully",
@@ -219,8 +216,7 @@ class UserController {
                 )
             )
         } else {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+            status(HttpStatus.NOT_FOUND)
                 .body(
                     ApiResponse(
                         success = false,
@@ -246,7 +242,7 @@ class UserController {
             .filter { it.name.contains(name, ignoreCase = true) }
             .map { UserResponse.fromUser(it) }
 
-        return ResponseEntity.ok(
+        return ok(
             ApiResponse(
                 success = true,
                 message = "Search completed. Found ${results.size} user(s)",
@@ -272,7 +268,7 @@ class UserController {
             .filter { it.age in minAge..maxAge }
             .map { UserResponse.fromUser(it) }
 
-        return ResponseEntity.ok(
+        return ok(
             ApiResponse(
                 success = true,
                 message = "Found ${results.size} user(s) between age $minAge and $maxAge",
@@ -289,7 +285,7 @@ class UserController {
      */
     @GetMapping("/count")
     fun getUserCount(): ResponseEntity<ApiResponse<Int>> {
-        return ResponseEntity.ok(
+        return ok(
             ApiResponse(
                 success = true,
                 message = "Total users count",
@@ -307,7 +303,7 @@ class UserController {
     @GetMapping("/stats")
     fun getUserStats(): ResponseEntity<ApiResponse<Map<String, Any?>>> {
         if (users.isEmpty()) {
-            return ResponseEntity.ok(
+            return ok(
                 ApiResponse(
                     success = true,
                     message = "No users in system",
@@ -330,7 +326,7 @@ class UserController {
             }
         )
 
-        return ResponseEntity.ok(
+        return ok(
             ApiResponse(
                 success = true,
                 message = "User statistics",
