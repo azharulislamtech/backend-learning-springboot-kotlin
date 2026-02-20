@@ -1,0 +1,40 @@
+### Create Employee
+POST http://localhost:8080/api/employees
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "secret123",
+  "department": "IT"
+}
+
+### Get All Employees
+GET http://localhost:8080/api/employees
+
+### Get Employee by ID
+GET http://localhost:8080/api/employees/1
+
+### Search Employees
+GET http://localhost:8080/api/employees/search?query=john
+
+### Update Employee (PUT)
+PUT http://localhost:8080/api/employees/1
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "email": "john.updated@example.com",
+  "department": "HR"
+}
+
+### Partial Update Employee (PATCH)
+PATCH http://localhost:8080/api/employees/1
+Content-Type: application/json
+
+{
+  "department": "Finance"
+}
+
+### Delete Employee
+DELETE http://localhost:8080/api/employees/1

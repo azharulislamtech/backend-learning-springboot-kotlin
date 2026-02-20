@@ -1,10 +1,10 @@
 package com.learning.blog.controller
 
-import com.learning.blog.model.APIResponse
-import com.learning.blog.model.CreateEmployeeRequest
+import com.learning.blog.common.ApiResponse
+import com.learning.blog.dto.request.CreateEmployeeRequest
+import com.learning.blog.dto.request.UpdateEmployeeRequest
+import com.learning.blog.dto.response.EmployeeResponse
 import com.learning.blog.model.Employee
-import com.learning.blog.model.EmployeeResponse
-import com.learning.blog.model.UpdateEmployeeRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -27,23 +27,23 @@ class EmployeeController {
     private var currentId = 1L
 
     @GetMapping()
-    fun getAllEmployees(): ResponseEntity<APIResponse<List<EmployeeResponse>>> {
+    fun getAllEmployees(): ResponseEntity<ApiResponse<List<EmployeeResponse>>> {
         val employeeResponse = employees.map { EmployeeResponse.fromEmployee(it) }
         return if (employeeResponse.isNotEmpty()) {
-            ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
+            ResponseEntity.ok(ApiResponse(success = true, message = "Fetch employee data", data = employeeResponse))
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse(success = false, message = "No data found", data = null))
+                .body(ApiResponse(success = false, message = "No data found", data = null))
         }
 
     }
 
     @GetMapping("/{id}")
-    fun getEmployeeById(@PathVariable id: Long): ResponseEntity<APIResponse<EmployeeResponse>> {
+    fun getEmployeeById(@PathVariable id: Long): ResponseEntity<ApiResponse<EmployeeResponse>> {
         val employee = employees.find { it.id == id }
         return if (employee != null) {
             ResponseEntity.ok(
-                APIResponse(
+                ApiResponse(
                     success = true,
                     message = "Employee found successfully",
                     data = EmployeeResponse.fromEmployee(employee)
@@ -51,12 +51,12 @@ class EmployeeController {
             )
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse(success = false, message = "Employee with id $id not found", data = null))
+                .body(ApiResponse(success = false, message = "Employee with id $id not found", data = null))
         }
     }
 
     @PostMapping
-    fun createEmployee(@RequestBody request: CreateEmployeeRequest): ResponseEntity<APIResponse<EmployeeResponse>> {
+    fun createEmployee(@RequestBody request: CreateEmployeeRequest): ResponseEntity<ApiResponse<EmployeeResponse>> {
         val newEmployee = Employee(
             id = currentId++,
             name = request.name,
@@ -64,10 +64,11 @@ class EmployeeController {
             password = request.password,
             department = request.department
         )
-        return ResponseEntity.created(URI.create("api/employees/{id}")).body(
-            APIResponse(
+        employees.add(newEmployee)
+        return ResponseEntity.created(URI.create("/api/employees/${newEmployee.id}")).body(
+            ApiResponse(
                 success = true,
-                message = "Employee populated",
+                message = "Employee created successfully",
                 data = EmployeeResponse.fromEmployee(newEmployee)
             )
         )
@@ -77,17 +78,17 @@ class EmployeeController {
     fun updateEmployee(
         @PathVariable id: Long,
         @RequestBody request: UpdateEmployeeRequest
-    ): ResponseEntity<APIResponse<EmployeeResponse>> {
+    ): ResponseEntity<ApiResponse<EmployeeResponse>> {
         val index = employees.indexOfFirst { it.id == id }
         if (index == -1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse(success = false, message = "Employee id with $id not found", data = null))
+                .body(ApiResponse(success = false, message = "Employee id with $id not found", data = null))
         }
         val employee = employees[index]
         val updatedEmployee = employee.copy(name = request.name, email = request.email, department = request.department)
         employees[index] = updatedEmployee
         return ResponseEntity.ok().body(
-            APIResponse(
+            ApiResponse(
                 success = true,
                 message = "Employee updated successfully",
                 data = EmployeeResponse.fromEmployee(updatedEmployee)
@@ -99,12 +100,12 @@ class EmployeeController {
     fun patchEmployee(
         @PathVariable id: Long,
         @RequestBody update: Map<String, Any>
-    ): ResponseEntity<APIResponse<EmployeeResponse>> {
+    ): ResponseEntity<ApiResponse<EmployeeResponse>> {
         val index = employees.indexOfFirst { it.id == id }
 
         if (index == -1)
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse(success = false, message = "Employee id with $id not found"))
+                .body(ApiResponse(success = false, message = "Employee id with $id not found"))
 
         var employee = employees[index]
         update.forEach { (key, value) ->
@@ -116,7 +117,7 @@ class EmployeeController {
         }
         employees[index] = employee
         return ResponseEntity.ok(
-            APIResponse(
+            ApiResponse(
                 success = true,
                 message = "Employee updated successfully",
                 data = EmployeeResponse.fromEmployee(employee)
@@ -127,11 +128,11 @@ class EmployeeController {
 
 
     @DeleteMapping("/{id}")
-    fun deleteEmployee(@PathVariable id: Long): ResponseEntity<APIResponse<String>> {
+    fun deleteEmployee(@PathVariable id: Long): ResponseEntity<ApiResponse<String>> {
         val deleted = employees.removeIf { it.id == id }
         if (deleted) {
             return ResponseEntity.ok(
-                APIResponse(
+                ApiResponse(
                     success = true,
                     message = "Employee  removed successfully",
                     data = "Employee id $id deleted successfully"
@@ -139,52 +140,22 @@ class EmployeeController {
             )
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(APIResponse(success = false, message = "Employee id $id not found", data = null))
+            .body(ApiResponse(success = false, message = "Employee id $id not found", data = null))
     }
 
     @GetMapping("/search")
-    fun searchEmployeeByName(@RequestParam name: String): ResponseEntity<APIResponse<List<EmployeeResponse>>>{
-        val matchEmployees= employees.filter { it.name.contains(name, ignoreCase = true) }
-        val employeeResponse=matchEmployees.map{ EmployeeResponse.fromEmployee(it) }
-
-        return if(employeeResponse.isNotEmpty()){
-            ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
-        }else{
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse(success = false, message = "No data found", data = null))
-
-        }
-
-    }
-
-    fun employeeSearch(@RequestParam query: String?=null): ResponseEntity<APIResponse<List<EmployeeResponse>>>
-    {
-        val matchEmployees=if(query.isNullOrEmpty()){
-            employees
-        }else{
-            employees.filter { it.name.contains(query, ignoreCase = true)||it.department.contains(query, ignoreCase = true)||it.email.contains(query, ignoreCase = true) }
-        }
-        val employeeResponse=matchEmployees.map{ EmployeeResponse.fromEmployee(it) }
-        return ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
-    }
-
-    @GetMapping("/search")
-    fun searchEmployees(@RequestParam query: String?=null): ResponseEntity<APIResponse<List<EmployeeResponse>>> {
-
-        val matchEmployees = if (query == null) {
+    fun searchEmployees(@RequestParam query: String? = null): ResponseEntity<ApiResponse<List<EmployeeResponse>>> {
+        val matchEmployees = if (query.isNullOrEmpty()) {
             employees
         } else {
             employees.filter {
-                it.name.contains(query, ignoreCase = true) || it.department.contains(
-                    query,
-                    ignoreCase = true
-                ) || it.email.contains(query, ignoreCase = true)
+                it.name.contains(query, ignoreCase = true) ||
+                        it.department.contains(query, ignoreCase = true) ||
+                        it.email.contains(query, ignoreCase = true)
             }
         }
         val employeeResponse = matchEmployees.map { EmployeeResponse.fromEmployee(it) }
-
-        return ResponseEntity.ok(APIResponse(success = true, message = "Fetch employee data", data = employeeResponse))
-
-
+        return ResponseEntity.ok(ApiResponse(success = true, message = "Fetch employee data", data = employeeResponse))
     }
 
 }
