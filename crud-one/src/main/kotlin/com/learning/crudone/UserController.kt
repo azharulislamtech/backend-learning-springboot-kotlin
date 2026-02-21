@@ -13,13 +13,12 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("api/users")
 class UserController(private val service:UserService) {
-
+    // ১. সব ইউজার পাওয়ার জন্য (GET)
     @GetMapping
     fun getAllUsers()=service.getAll()
 
-    @PostMapping
-    fun saveUser(@RequestBody user:User)=service.save(user)
 
+    // ২. নির্দিষ্ট একজন ইউজার পাওয়ার জন্য (GET with ID)
     @GetMapping("/{id}")
     fun getUserById(@PathVariable id: Long): ResponseEntity<User> {
 
@@ -30,11 +29,30 @@ class UserController(private val service:UserService) {
             ResponseEntity.notFound().build()
     }
 
-    @DeleteMapping("/{id}")
-    fun deleteUserById(@PathVariable id:Long)=service.deleteById(id)
+    // ৩. নতুন ইউজার তৈরির জন্য (POST)
+    @PostMapping
+    fun saveUser(@RequestBody user:User)=service.save(user)
 
+    // ৪. ইউজার আপডেট করার জন্য (PUT)
     @PutMapping("/{id}")
-    fun updateUserById(@PathVariable id:Long,@RequestBody updatedUser:User)=service.updateUser(id,updatedUser)
+    fun updateUserById(@PathVariable id:Long,@RequestBody updatedUser:User): ResponseEntity<User>
+    {
+        val updatedUser=service.updateUser(id,updatedUser)
+       return if(updatedUser!=null)
+           ResponseEntity.ok(updatedUser)
+        else
+              ResponseEntity.notFound().build()
+    }
+
+    // ৫. ইউজার ডিলিট করার জন্য (DELETE)
+    @DeleteMapping("/{id}")
+    fun deleteUserById(@PathVariable id:Long): ResponseEntity<Void>{
+
+        return if(service.deleteById(id))
+            ResponseEntity.noContent().build()
+        else
+            ResponseEntity.notFound().build()
+    }
 
 
 }

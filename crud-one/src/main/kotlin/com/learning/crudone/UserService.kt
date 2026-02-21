@@ -5,25 +5,18 @@ import org.springframework.stereotype.Service
 @Service
 class UserService(private val repository: UserRepository) {
 
-    // ২. Read All (সব ইউজারের লিস্ট দেখা)
-    fun getAll():List<User>{
-        return repository.findAll()
-    }
-    // ৩. Read by ID (নির্দিষ্ট একজনকে খুঁজে বের করা)
-    fun getById(id:Long):User?= repository.findById(id).orElse(null)
-
     // ১. Save (নতুন ইউজার সেভ করা)
     fun save(user:User):User{
         return repository.save(user)
     }
-    // ৫. Delete (ইউজার মুছে ফেলা)
-    fun deleteById(id:Long): Boolean=
-        if(repository.existsById(id)){
-            repository.deleteById(id)
-             true
-        }else {
-            false
-        }
+
+    // ২. Read All (সব ইউজারের লিস্ট দেখা)
+    fun getAll():List<User>{
+        return repository.findAll()
+    }
+
+    // ৩. Read by ID (নির্দিষ্ট একজনকে খুঁজে বের করা)
+    fun getById(id:Long):User?= repository.findById(id).orElse(null)
 
     // ৪. Update (তথ্য পরিবর্তন করা)
     fun updateUser(id: Long, updatedUser: User): User? {
@@ -35,4 +28,14 @@ class UserService(private val repository: UserRepository) {
             null
         }
     }
+
+    // ৫. Delete (ইউজার মুছে ফেলা)
+    fun deleteById(id:Long): Boolean=
+        if(repository.existsById(id)){
+            repository.deleteById(id)
+             true
+        }else {
+            false
+        }
+
 }
