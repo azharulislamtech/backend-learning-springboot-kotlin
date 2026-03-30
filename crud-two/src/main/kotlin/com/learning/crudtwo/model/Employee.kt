@@ -1,4 +1,4 @@
-package com.learning.crudtwo
+package com.learning.crudtwo.model
 
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
