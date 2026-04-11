@@ -22,6 +22,7 @@ class EmployeeService(private val repository: EmployeeRepository) {
 
     fun patchEmployee(id: Long, employee: PatchEmployeeRequest): Employee? {
         val existing = repository.findById(id).orElse(null) ?: return null
+
         return repository.save(existing.copy(
             name = employee.name ?: existing.name,
             email = employee.email ?: existing.email

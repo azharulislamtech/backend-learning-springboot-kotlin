@@ -8,6 +8,7 @@ import com.learning.crudtwo.dto.response.EmployeeResponse
 import com.learning.crudtwo.service.EmployeeService
 import com.learning.crudtwo.model.Employee
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -81,6 +82,16 @@ class EmployeeController(private val service: EmployeeService) {
         } catch (e: Exception) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse(success = false, message = "Failed to delete employee: ${e.message}", data = null))
+        }
+    }
+
+    @PutMapping("/{id}")
+    fun updateExistingEmployee(@PathVariable id: Long, @RequestBody employee: UpdateEmployeeRequest): ResponseEntity<ApiResponse<EmployeeResponse>>{
+        val updatedEmployee=service.updateEmployee(id, employee)
+        if (updatedEmployee!=null){
+            return ResponseEntity.ok(ApiResponse(success = true, message = "Employee updated successfully",data= EmployeeResponse.fromEmployee(updatedEmployee)))
+        }else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse(success = false, message = "Employee with id $id not found", data = null))
         }
     }
 }
